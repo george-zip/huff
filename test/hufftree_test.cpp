@@ -1,5 +1,5 @@
-#include "../src/huffutil.h"
-#include "../src/hufftree.h"
+#include "../src/lib/huffutil.h"
+#include "../src/lib/hufftree.h"
 
 #include <gtest/gtest.h>
 

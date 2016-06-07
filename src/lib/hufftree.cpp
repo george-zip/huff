@@ -21,16 +21,6 @@ namespace huffman {
 		}
 	};
 
-	void destroy(TreeNode* p) {
-		if(p != NULL) {
-			if(p->zero() != NULL)
-				destroy(p->zero());
-			if(p->one() != NULL)
-				destroy(p->one());
-			delete p;
-		}
-	}
-
 	void toCodeMapF(codedMap& cm, std::string bitString, TreeNode* node) {
 		if(node == NULL)
 			return;
@@ -65,16 +55,16 @@ namespace huffman {
         	q.push(parent);
         }
         if(!q.empty()) {
-	        _root = q.top();
+	        _root.reset(q.top());
         	q.pop();
         }
 	}
 
 	HuffTree::~HuffTree() {
-		destroy(_root);
+		//destroy(_root);
 	}
 
 	void HuffTree::toCodeMap(codedMap& cm) {
-		toCodeMapF(cm, std::string(), _root);
+		toCodeMapF(cm, std::string(), _root.get());
 	}
 }

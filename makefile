@@ -1,41 +1,43 @@
-BIN_TARGET=bin/huffMain
+HUFF_TARGET=bin/huff
 LIB_TARGET=lib/libHuff.dylib
-CFLAGS = -std=c++98  -Wall -g
+CFLAGS = -std=c++11 -Wall -g
+GTEST_DIR=/Users/chris.wallerstein/dev/cpp/gtest/googletest/googletest
 CC=g++
-SRCDIR=src
+LIBDIR=src/lib
 BUILDDIR=build
 TESTDIR=test
 LDFLAGS=-Wl,-rpath,/Users/chris.wallerstein/dev/cpp/huff/lib
 SRCEXT=cpp
-SOURCES=$(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-TEST_SOURCES=$(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
-OBJECTS=$(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+LIB_OBJECTS=$(shell find $(LIBDIR) -type f -name *.$(SRCEXT))
+LIB_INCLUDES = $(wildcard src/lib/*.h)
 TEST_OBJECTS=$(patsubst $(TESTDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-INC=-I/Users/chriswallerstein/dev/cpp/gtest/googletest/googletest/include/
-LIB=/Users/chriswallerstein/dev/cpp/gtest/googletest/googletest/make/gtest_main.a -L./lib -lHuff
-#LIB=-L./lib -lHuff
+INC=-Isrc/lib -I/Users/chris.wallerstein/dev/cpp/gtest/googletest/googletest/include/ 
+LIB=-L./lib -lHuff
 
-all : $(LIB_TARGET) $(BIN_TARGET) test
+all : lib huff unhuff test
 .PHONY : all
 
-$(LIB_TARGET): $(OBJECTS)
+lib : $(LIB_OBJECTS) $(LIB_INCLUDES) 
 	@echo " Building lib..."
-	@echo " $(CC) $^ -shared -o $(LIB_TARGET)"; $(CC) $^ -shared -dynamiclib -o $(LIB_TARGET) 
+	$(CC) $(LIB_OBJECTS) -shared -dynamiclib -o $(LIB_TARGET) 
+.PHONY: lib
 
-$(BIN_TARGET): $(OBJECTS)
-	@echo " Linking binary..."
-	@echo " $(CC) $^ -o $(BIN_TARGET) $(LIB)"; $(CC) $^ -o $(BIN_TARGET) $(LIB)
+huff : lib $(LIB_INCLUDES)
+	@echo " Linking huff..."
+	$(CC) src/bin/huff_main.cpp -o bin/huff $(LIB) $(INC)
+.PHONY: huff
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@mkdir -p $(BUILDDIR)
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+unhuff : lib $(LIB_INCLUDES)
+	@echo " Linking unhuff..."
+	$(CC) src/bin/unhuff_main.cpp -o bin/unhuff $(LIB) $(INC)
+.PHONY: unhuff
 
 clean:
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(BIN_TARGET) $(LIB_TARGET)"; $(RM) -r $(BUILDDIR) $(BIN_TARGET) $(LIB_TARGET)
-
-# Tests
-test: $(TEST_OBJECTS)
-	$(CC) $(CFLAGS) -o bin/testHuff test/hufftree_test.cpp $(LDFLAGS) $(LIB) $(INC) 
-
+	rm -r bin/* lib/*
 .PHONY: clean
+
+test: lib $(TEST_OBJECTS)
+	$(CC) $(CFLAGS) -o bin/testHuff test/hufftree_test.cpp $(LDFLAGS) $(LIB) \
+	$(GTEST_DIR)/libgtest.a $(INC) 
+

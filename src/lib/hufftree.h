@@ -2,6 +2,9 @@
 #define HUFF_TREE_H
 
 #include <unordered_map>
+#include <memory>
+
+using std::auto_ptr;
 
 namespace huffman {
 
@@ -14,23 +17,24 @@ public:
 	TreeNode(unsigned count, TreeNode* l, TreeNode* r, int c = 0)
 		: _count(count), _zero(l), _one(r), _c(c)
 	{}
-	virtual ~TreeNode() {}
+	~TreeNode() {
+	}
 	unsigned count() const {
 		return _count;
 	}
 	TreeNode* zero() {
-		return _zero;
+		return _zero.get();
 	}
 	TreeNode* one() {
-		return _one;
+		return _one.get();
 	}
 	int letter() const {
 		return _c;
 	}
 private:
 	unsigned _count;
-	TreeNode* _zero;
-	TreeNode* _one;
+	const auto_ptr<TreeNode> _zero;
+	const auto_ptr<TreeNode> _one;
 	int _c;
 };
 
@@ -40,7 +44,7 @@ public:
 	explicit HuffTree(const frequencyMap& fMap);
 	~HuffTree();
 	TreeNode* getRoot() {
-		return _root;
+		return _root.get();
 	}
 	void toCodeMap(codedMap& cm);
 
@@ -48,7 +52,7 @@ private:
 
 	HuffTree(const HuffTree&);
 	HuffTree& operator=(const HuffTree&);
-	TreeNode* _root;
+	auto_ptr<TreeNode> _root;
 
 };
 
