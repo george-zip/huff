@@ -5,24 +5,61 @@
 #include <unordered_map>
 #include <utility>
 #include <stdexcept>
+#include <bitset>
 
 namespace huffman {
 
+static const int MAGIC_NUMBER = 0x1F9D;
+static const int MAGIC_NUMBER_BITS = 16;
 
 void writeMagicNumber(obstream& outfile) {
-  static const int MAGIC_NUMBER = 0x1F9D;
-  outfile.writebits(16, MAGIC_NUMBER);
+  outfile.writebits(MAGIC_NUMBER_BITS, MAGIC_NUMBER);
+}
+
+bool isHuffCompressed(ibstream& infile) {
+  bool retVal = false;
+  int inbits;
+  if(infile.readbits(MAGIC_NUMBER_BITS, inbits)) {
+    retVal = inbits == MAGIC_NUMBER;
+  }
+  return retVal;
+}
+
+void readMap(ibstream& infile, codeToCharMap& cm) {
+  int inbits;
+  if(infile.readbits(BITS_PER_WORD, inbits)) {
+    int mapSize = inbits;
+    for(int i = 0; i < mapSize; ++i) {
+      if(infile.readbits(BITS_PER_WORD, inbits)) {
+        int bitStringSize = inbits;
+        std::string bitString;
+        int j = 0;
+        for(int j = 0; j < bitStringSize; ++j) {
+          if(infile.readbits(1, inbits)) {
+            if(inbits == 1)
+              bitString += '1';
+            else 
+              bitString += '0';
+          }
+        }
+        if(infile.readbits(BITS_PER_WORD, inbits)) {
+          cm.insert(std::make_pair(bitString, inbits));
+        }
+      }
+    }
+}
 }
 
 void writeMap(obstream& outfile, const codedMap& cm) {
   codedMap::const_iterator itr = cm.begin();
   codedMap::const_iterator end = cm.end();
-  outfile.writebits(8, cm.size()); 
+  outfile.writebits(BITS_PER_WORD, cm.size()); 
   for(; itr != end; ++itr) {
-    outfile.writebits(8, itr->first); // character
     std::string bitString = itr->second;
-    if(bitString.size() > 8)
+    if(bitString.size() > BITS_PER_WORD)
       throw std::runtime_error(bitString + " too long");
+    else
+      outfile.writebits(BITS_PER_WORD, bitString.size());
     int i = 0;
     for( ; i < bitString.size(); ++i) {
       if(bitString.at(i) == '1')
@@ -30,10 +67,8 @@ void writeMap(obstream& outfile, const codedMap& cm) {
       else
         outfile.writebits(1, 0);      
     }
-    // fill in remaining bits in byte
-    for(int j = i; j < 8; ++j) {
-        outfile.writebits(1, 0);            
-    }
+    // character last because when we unhuff we want to map bits to character
+    outfile.writebits(8, itr->first); 
   }
 }
 

@@ -38,8 +38,7 @@ int main(int argc, char * argv[]) {
           writeFile(outfile, bitString, cm);
         }
         else {
-          std::cerr << "Unable to open file name [" << argv[2]
-                << "]" << std::endl;
+          // TODO
         }
       }
     }
@@ -48,4 +47,5 @@ int main(int argc, char * argv[]) {
                 << "]" << std::endl;
     }
   }
+  return 0;
 }

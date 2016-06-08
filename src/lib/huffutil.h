@@ -11,6 +11,7 @@ namespace huffman {
 
 typedef std::unordered_map<int, unsigned> frequencyMap;
 typedef std::unordered_map<int, std::string> codedMap;
+typedef std::unordered_map<std::string, int> codeToCharMap;
 
 void getCharCount(ibstream&, frequencyMap&);
 
@@ -21,6 +22,10 @@ void createBitString(ibstream&, const codedMap&, std::string&);
 void writeMagicNumber(obstream&);
 
 void writeMap(obstream&, const codedMap&);
+
+void readMap(ibstream&, codeToCharMap&);
+
+bool isHuffCompressed(ibstream&);
 
 }
 
