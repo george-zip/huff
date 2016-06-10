@@ -44,6 +44,28 @@ public:
   HuffTree* pHuffTree_;
 };
 
+class HuffTreeTestFromBinString : public ::testing::Test {
+public:
+
+  HuffTreeTestFromBinString() : pHuffTree_(NULL) {
+    cMap.insert(std::make_pair("00", 'g'));
+    cMap.insert(std::make_pair("1001", 's'));
+    cMap.insert(std::make_pair("101", 32));
+    cMap.insert(std::make_pair("01", 'o'));
+    cMap.insert(std::make_pair("1101", 'e'));
+    cMap.insert(std::make_pair("1110", 'h'));
+    cMap.insert(std::make_pair("1100", 10));
+    cMap.insert(std::make_pair("1000", 'r'));
+    cMap.insert(std::make_pair("1111", 'p'));
+    pHuffTree_ = new HuffTree(cMap);
+  }
+
+  ~HuffTreeTestFromBinString() {
+    delete pHuffTree_;
+  }
+  codeToCharMap cMap;
+  HuffTree* pHuffTree_;
+};
 
 TEST_F (HuffTreeTest, UnitTest1) {
   TreeNode* root = pHuffTree_->getRoot();
@@ -92,6 +114,16 @@ TEST_F(HuffTreeTestEmpty, UnitTest4) {
   codedMap cm;
   pHuffTree_->toCodeMap(cm);
   EXPECT_EQ(cm.size(), 0);
+}
+
+TEST_F(HuffTreeTestFromBinString, UnitTest5) {
+  codedMap cm;
+  pHuffTree_->toCodeMap(cm);
+  EXPECT_EQ(cm.size(), 9);
+  EXPECT_EQ(cm.at('g').size(), 2);
+  EXPECT_EQ(cm.at('o').size(), 2);
+  EXPECT_EQ(cm.at(' ').size(), 3);
+  EXPECT_EQ(cm.at('e').size(), 4);
 }
 
 int main(int argc, char **argv) {

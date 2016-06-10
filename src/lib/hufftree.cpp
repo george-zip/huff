@@ -2,13 +2,26 @@
 
 #include <queue>
 #include <string>
+#include <cassert>
+#include <algorithm>
 
 #include <iostream>
 
 using std::cout;
 using std::endl;
+using std::string;
+
 
 namespace huffman {
+
+	int treedepth(TreeNode* n) {
+		if(n == NULL) {
+			return 0;
+		}
+		else {
+			return 1 + std::max(treedepth(n->one()), treedepth(n->zero()));	
+		}
+	}
 
 	struct NodeComp {
 		bool operator()(const TreeNode* l, const TreeNode* r) {
@@ -21,7 +34,7 @@ namespace huffman {
 		}
 	};
 
-	void toCodeMapF(codedMap& cm, std::string bitString, TreeNode* node) {
+	void toCodeMapF(codedMap& cm, string bitString, TreeNode* node) {
 		if(node == NULL)
 			return;
 
@@ -30,12 +43,16 @@ namespace huffman {
 			cm.insert(std::make_pair(node->letter(), bitString));
 		}
 		else {
-			std::string bitStringCopy = bitString;
+			string bitStringCopy = bitString;
 			bitString += '0';
 			toCodeMapF(cm, bitString, node->zero());
 			bitStringCopy += '1';
 			toCodeMapF(cm, bitStringCopy, node->one());
 		}
+	}
+
+	int HuffTree::depth() const {
+		return treedepth(_root);
 	}
 
 	HuffTree::HuffTree(const frequencyMap& fMap) : _root(NULL) {
@@ -55,16 +72,51 @@ namespace huffman {
         	q.push(parent);
         }
         if(!q.empty()) {
-	        _root.reset(q.top());
+	        _root = q.top();
         	q.pop();
         }
 	}
 
+	HuffTree::HuffTree(const codeToCharMap& cMap) : _root(NULL) {
+		if(!cMap.empty()) {
+			_root = new TreeNode(0, NULL, NULL);
+			codeToCharMap::const_iterator itr = cMap.begin();
+			for(; itr != cMap.end(); ++itr) {
+				const string bitString = itr->first;
+				TreeNode* curr = _root;
+				string::const_iterator sItr = bitString.begin();
+				for(; sItr != bitString.end(); ++sItr) {
+					int payload = 0;
+					if(sItr == bitString.end() - 1) {
+						payload = itr->second;
+					}
+					if(*sItr == '1') {
+						if(curr->one() == NULL) {
+							curr->setOne(new TreeNode(0, NULL, NULL, payload));
+						}
+						assert(curr->one() != NULL);
+						curr = curr->one();
+					}
+					else {
+						if(curr->zero() == NULL) {
+							curr->setZero(new TreeNode(0, NULL, NULL, payload));
+						}
+						assert(curr->zero() != NULL);
+						curr = curr->zero();						
+					}
+				}
+				assert(curr->zero() == NULL);
+				assert(curr->one() == NULL);
+				assert(curr->letter() == itr->second);
+			}
+		}
+	}
+
 	HuffTree::~HuffTree() {
-		//destroy(_root);
+		delete _root;
 	}
 
 	void HuffTree::toCodeMap(codedMap& cm) {
-		toCodeMapF(cm, std::string(), _root.get());
+		toCodeMapF(cm, string(), _root);
 	}
 }

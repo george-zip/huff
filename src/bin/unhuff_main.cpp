@@ -31,8 +31,14 @@ int main(int argc, char * argv[]) {
 			codeToCharMap cm;
 			readMap(infile, cm);
 			//printCM(cm);
-
-			// decode remainder of bitstream and write to file
+			if(cm.size() > 0) {
+				// decode remainder of bitstream and write to file
+				HuffTree tree(cm);
+				int next;
+				while((next = getNextLetter(infile, tree)) != -1) {
+					std::cout << static_cast<char>(next);
+				}				
+			}
 		}
 		else {
 			std::cerr << "Not huff compressed" << std::endl;		

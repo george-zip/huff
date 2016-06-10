@@ -1,6 +1,8 @@
 #ifndef HUFFUTIL_H
 #define HUFFUTIL_H
 
+#include "hufftree.h"
+
 #include <unordered_map>
 #include <string>
 
@@ -8,6 +10,8 @@ class ibstream;
 class obstream;
 
 namespace huffman {
+
+static int EOF_CHAR = -1;
 
 typedef std::unordered_map<int, unsigned> frequencyMap;
 typedef std::unordered_map<int, std::string> codedMap;
@@ -26,6 +30,12 @@ void writeMap(obstream&, const codedMap&);
 void readMap(ibstream&, codeToCharMap&);
 
 bool isHuffCompressed(ibstream&);
+
+int getNextLetter(ibstream&, const HuffTree&);
+
+size_t targetFileBytes(const codedMap&);
+
+size_t filesize(const std::string& );	
 
 }
 

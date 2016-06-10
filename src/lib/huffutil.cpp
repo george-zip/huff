@@ -6,6 +6,8 @@
 #include <utility>
 #include <stdexcept>
 #include <bitset>
+#include <cmath>
+#include <fstream>
 
 namespace huffman {
 
@@ -16,6 +18,23 @@ void writeMagicNumber(obstream& outfile) {
   outfile.writebits(MAGIC_NUMBER_BITS, MAGIC_NUMBER);
 }
 
+size_t filesize(const std::string& filename) {
+    std::ifstream in(filename, std::ios::binary | std::ios::ate);
+    return in.tellg(); 
+}
+
+size_t targetFileBytes(const codedMap& cm) {
+  size_t payloadBits = 0;
+  codedMap::const_iterator itr = cm.begin();
+  for(; itr != cm.end(); ++itr) {
+    payloadBits += BITS_PER_WORD;
+    payloadBits += itr->second.length();
+  }
+  return ceil((payloadBits + MAGIC_NUMBER_BITS + BITS_PER_WORD) 
+    / BITS_PER_WORD);
+}
+
+
 bool isHuffCompressed(ibstream& infile) {
   bool retVal = false;
   int inbits;
@@ -23,6 +42,27 @@ bool isHuffCompressed(ibstream& infile) {
     retVal = inbits == MAGIC_NUMBER;
   }
   return retVal;
+}
+
+int getNextLetter(ibstream& infile, const HuffTree& ht) {
+  int retVal = -1;
+  int inbits;
+  TreeNode* curr = ht.getRoot();
+  while(infile.readbits(1, inbits) && curr != NULL) {
+    if(inbits == 1) {
+      curr = curr->one();
+    }
+    else {
+      curr = curr->zero();
+    }
+    if(curr == NULL)
+      break;
+    if(curr->one() == NULL && curr->zero() == NULL) {
+      retVal = curr->letter();
+      break;
+    }
+  }
+  return retVal == EOF_CHAR? -1 : retVal;
 }
 
 void readMap(ibstream& infile, codeToCharMap& cm) {
@@ -56,12 +96,8 @@ void writeMap(obstream& outfile, const codedMap& cm) {
   outfile.writebits(BITS_PER_WORD, cm.size()); 
   for(; itr != end; ++itr) {
     std::string bitString = itr->second;
-    if(bitString.size() > BITS_PER_WORD)
-      throw std::runtime_error(bitString + " too long");
-    else
-      outfile.writebits(BITS_PER_WORD, bitString.size());
-    int i = 0;
-    for( ; i < bitString.size(); ++i) {
+    outfile.writebits(BITS_PER_WORD, bitString.size());
+    for(int i = 0; i < bitString.size(); ++i) {
       if(bitString.at(i) == '1')
         outfile.writebits(1, 1);
       else
@@ -83,6 +119,7 @@ void getCharCount(ibstream& infile, std::unordered_map<int, unsigned>& result) {
       ++(itr->second);
     }
   }
+  result.insert(std::make_pair(EOF_CHAR, 1));
 }
 
 void writeFile(obstream& outfile, const std::string& bitString, const codedMap& cm) {
@@ -99,6 +136,7 @@ void writeFile(obstream& outfile, const std::string& bitString, const codedMap& 
       outfile.writebits(1, 0);      
     }
   }
+  outfile.writebits(BITS_PER_WORD, EOF_CHAR);
 }
 
 void createBitString(ibstream& infile, const codedMap& cm, std::string& output) {

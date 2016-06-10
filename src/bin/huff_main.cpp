@@ -27,7 +27,12 @@ int main(int argc, char * argv[]) {
       HuffTree tree(result);
       codedMap cm;
       tree.toCodeMap(cm);
-      //printCM(cm);
+      if(targetFileBytes(cm) > filesize(argv[1])) {
+        std::cout 
+        << "No compression occurred: Target file size is larger than original."
+        << std::endl;
+        return -1;
+      }
       std::string bitString;
       infile.rewind();
       createBitString(infile, cm, bitString);
