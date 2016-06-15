@@ -141,4 +141,11 @@ TEST(HuffUtil, getNextLetter) {
 	EXPECT_EQ(getNextLetter(mock, ht), MY_CHAR);	
 }
 
+// 
+TEST(HuffUtil, writeMap) {
+	stream_type_mock mock;
+	InSequence dummy;
+
+}
+
 }

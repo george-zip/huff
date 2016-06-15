@@ -13,13 +13,13 @@ class obstream;
 
 namespace huffman {
 
-static int EOF_CHAR = -1;
+static const int EOF_CHAR = -1;
+static const int MAGIC_NUMBER = 0x1F9D;
+static const int MAGIC_NUMBER_BITS = 16;
 
 typedef std::unordered_map<int, unsigned> frequencyMap;
 typedef std::unordered_map<int, std::string> codedMap;
 typedef std::unordered_map<std::string, int> codeToCharMap;
-
-void writeMap(obstream&, const codedMap&);
 
 template<typename stream_type>
 void getCharCount(stream_type& infile, std::unordered_map<int, unsigned>& result) {
@@ -37,10 +37,34 @@ void getCharCount(stream_type& infile, std::unordered_map<int, unsigned>& result
   	result.insert(std::make_pair(EOF_CHAR, 1));
 }
 
-void writeMagicNumber(obstream&);
+template<typename stream_type>
+void writeMagicNumber(stream_type& outfile) {
+  outfile.writebits(MAGIC_NUMBER_BITS, MAGIC_NUMBER);
+}
 
 template<typename stream_type>
-void writeFile(stream_type& outfile, const std::string& bitString, const codedMap& cm) {
+void writeMap(stream_type& outfile, const codedMap& cm) {
+  assert(!cm.empty());
+  codedMap::const_iterator itr = cm.begin();
+  codedMap::const_iterator end = cm.end();
+  outfile.writebits(BITS_PER_WORD, cm.size()); 
+  for(; itr != end; ++itr) {
+    std::string bitString = itr->second;
+    outfile.writebits(BITS_PER_WORD, bitString.size());
+    for(int i = 0; i < bitString.size(); ++i) {
+      if(bitString.at(i) == '1')
+        outfile.writebits(1, 1);
+      else
+        outfile.writebits(1, 0);      
+    }
+    // character last because when we unhuff we want to map bits to character
+    outfile.writebits(8, itr->first); 
+  }
+}
+
+template<typename stream_type>
+void writeFile(stream_type& outfile, const std::string& bitString, 
+  const codedMap& cm) {
 	if(!bitString.empty()) {
 		assert(!cm.empty());
   		writeMagicNumber(outfile);
@@ -105,8 +129,6 @@ void readMap(stream_type& infile, codeToCharMap& cm) {
   assert(!cm.empty());
 }
 
-bool isHuffCompressed(ibstream&);
-
 template<typename stream_type>
 int getNextLetter(stream_type& infile, const HuffTree& ht) {
   int retVal = -1;
@@ -133,6 +155,8 @@ int getNextLetter(stream_type& infile, const HuffTree& ht) {
 size_t targetFileBytes(const codedMap&);
 
 size_t filesize(const std::string& );	
+
+bool isHuffCompressed(ibstream&);
 
 }
 
