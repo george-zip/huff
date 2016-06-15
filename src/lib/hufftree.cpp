@@ -119,4 +119,25 @@ namespace huffman {
 	void HuffTree::toCodeMap(codedMap& cm) {
 		toCodeMapF(cm, string(), _root);
 	}
+
+	huff_char_type HuffTree::getLetter(const std::string& binString) const {
+  		TreeNode* curr = _root;
+  		std::string::const_iterator itr = binString.begin();
+  		for(; itr != binString.end() && curr != NULL; ++itr) {
+    		if(*itr == '1') {
+      			curr = curr->one();
+    		}
+    		else {
+      			curr = curr->zero();
+    		}
+    		if(curr == NULL)
+      			throw std::runtime_error("Binary string not found");
+    		if(curr->one() == NULL && curr->zero() == NULL) {
+      			return curr->letter();
+    		}
+  		}
+  		assert(false);
+  		return -1;
+	}
+
 }

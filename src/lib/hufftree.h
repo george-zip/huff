@@ -7,10 +7,10 @@ using std::auto_ptr;
 
 namespace huffman {
 
-typedef int character;
-typedef std::unordered_map<character, std::string> codedMap;
-typedef std::unordered_map<character, unsigned> frequencyMap;
-typedef std::unordered_map<std::string, character> codeToCharMap;
+typedef int huff_char_type;
+typedef std::unordered_map<huff_char_type, std::string> codedMap;
+typedef std::unordered_map<huff_char_type, unsigned> frequencyMap;
+typedef std::unordered_map<std::string, huff_char_type> codeToCharMap;
 
 class TreeNode {
 public:
@@ -58,6 +58,7 @@ public:
 	}
 	void toCodeMap(codedMap& cm);
 	int depth() const;
+	huff_char_type getLetter(const std::string& binString) const; 
 
 private:
 

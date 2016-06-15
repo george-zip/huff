@@ -93,7 +93,7 @@ class obstream
   public:
      obstream();                      // default constructor
      obstream(const string &);        // bind to file specified by param
-     ~obstream();
+     virtual ~obstream();
 
      bool open(const string &);        // set bit-stream to file
      void writebits(int,int);          // value and # of bits to write

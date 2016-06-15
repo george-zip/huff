@@ -126,6 +126,14 @@ TEST_F(HuffTreeTestFromBinString, UnitTest5) {
   EXPECT_EQ(cm.at('e').size(), 4);
 }
 
+TEST_F(HuffTreeTestFromBinString, UnitTest6) {
+  codedMap cm;
+  pHuffTree_->toCodeMap(cm);
+  EXPECT_EQ(targetFileBytes(cm), 15);
+}
+
+//size_t filesize(const std::string& ); 
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

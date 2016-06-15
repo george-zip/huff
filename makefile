@@ -2,6 +2,7 @@ HUFF_TARGET=bin/huff
 LIB_TARGET=lib/libHuff.dylib
 CFLAGS = -std=c++11 -Wall -g
 GTEST_DIR=/Users/chris.wallerstein/dev/cpp/gtest/googletest/googletest
+GMOCK_DIR=/Users/chris.wallerstein/dev/cpp/gtest/googletest/googlemock
 CC=g++
 LIBDIR=src/lib
 BUILDDIR=build
@@ -9,9 +10,10 @@ TESTDIR=test
 LDFLAGS=-Wl,-rpath,/Users/chris.wallerstein/dev/cpp/huff/lib
 SRCEXT=cpp
 LIB_OBJECTS=$(shell find $(LIBDIR) -type f -name *.$(SRCEXT))
+TEST_OBJECTS=$(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
 LIB_INCLUDES = $(wildcard src/lib/*.h)
-TEST_OBJECTS=$(patsubst $(TESTDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-INC=-Isrc/lib -I/Users/chris.wallerstein/dev/cpp/gtest/googletest/googletest/include/ 
+INC=-Isrc/lib -I/Users/chris.wallerstein/dev/cpp/gtest/googletest/googletest/include/ \
+ -I/Users/chris.wallerstein/dev/cpp/gtest/googletest/googlemock/include/
 LIB=-L./lib -lHuff
 
 all : lib huff unhuff test
@@ -38,6 +40,6 @@ clean:
 .PHONY: clean
 
 test: lib $(TEST_OBJECTS)
-	$(CC) $(CFLAGS) -o bin/testHuff test/hufftree_test.cpp $(LDFLAGS) $(LIB) \
-	$(GTEST_DIR)/libgtest.a $(INC) 
+	$(CC) $(CFLAGS) -o bin/testHuff $(TEST_OBJECTS) $(LDFLAGS) $(LIB) \
+	$(GTEST_DIR)/libgtest.a $(GMOCK_DIR)/libgmock.a $(INC) 
 
